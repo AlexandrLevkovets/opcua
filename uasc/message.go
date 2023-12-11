@@ -7,8 +7,8 @@ package uasc
 import (
 	"math"
 
-	"github.com/gopcua/opcua/errors"
-	"github.com/gopcua/opcua/ua"
+	"github.com/AlexandrLevkovets/opcua/errors"
+	"github.com/AlexandrLevkovets/opcua/ua"
 )
 
 type MessageHeader struct {

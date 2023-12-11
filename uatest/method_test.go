@@ -9,8 +9,8 @@ import (
 
 	"github.com/pascaldekloe/goe/verify"
 
-	"github.com/gopcua/opcua"
-	"github.com/gopcua/opcua/ua"
+	"github.com/AlexandrLevkovets/opcua"
+	"github.com/AlexandrLevkovets/opcua/ua"
 )
 
 type Complex struct {

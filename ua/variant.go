@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/gopcua/opcua/errors"
+	"github.com/AlexandrLevkovets/opcua/errors"
 )
 
 var (
@@ -429,7 +429,6 @@ func sliceDim(v reflect.Value) (typ reflect.Type, dim []int32, count int32, err 
 	// array of Byte. The ByteArray type alias supports sending a []byte as an
 	// array of Byte.
 	//
-	// https://github.com/gopcua/opcua/issues/463
 	if v.Type() == reflect.TypeOf([]byte{}) && v.Type() != reflect.TypeOf(ByteArray{}) {
 		return v.Type(), nil, 1, nil
 	}

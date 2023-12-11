@@ -36,6 +36,7 @@ type Subscription struct {
 	lastSeq                   uint32
 	nextSeq                   uint32
 	c                         *Client
+	Items                     map[uint32]*MonitoredItem
 }
 
 type SubscriptionParameters struct {
@@ -50,6 +51,12 @@ type monitoredItem struct {
 	req *ua.MonitoredItemCreateRequest
 	res *ua.MonitoredItemCreateResult
 	ts  ua.TimestampsToReturn
+}
+
+type MonitoredItem struct {
+	Req *ua.MonitoredItemCreateRequest
+	Res *ua.MonitoredItemCreateResult
+	Ts  ua.TimestampsToReturn
 }
 
 func NewMonitoredItemCreateRequestWithDefaults(nodeID *ua.NodeID, attributeID ua.AttributeID, clientHandle uint32) *ua.MonitoredItemCreateRequest {
@@ -139,6 +146,11 @@ func (s *Subscription) Monitor(ctx context.Context, ts ua.TimestampsToReturn, it
 			req: item,
 			res: result,
 			ts:  ts,
+		}
+		s.Items[result.MonitoredItemID] = &MonitoredItem{
+			Req: item,
+			Res: result,
+			Ts:  ts,
 		}
 	}
 	s.itemsMu.Unlock()

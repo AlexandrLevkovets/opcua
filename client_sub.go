@@ -60,6 +60,7 @@ func (c *Client) Subscribe(ctx context.Context, params *SubscriptionParameters, 
 		params:                    params,
 		nextSeq:                   1,
 		c:                         c,
+		Items:                     make(map[uint32]*MonitoredItem),
 	}
 
 	c.subMux.Lock()

@@ -84,7 +84,7 @@ func NewMonitoredItemCreateRequestWithDefaults(nodeID *ua.NodeID, attributeID ua
 type PublishNotificationDataForDataChange struct {
 	SubscriptionID uint32
 	Error          error
-	NodeId         ua.NodeID
+	NodeId         *ua.NodeID
 	Value          interface{}
 }
 

@@ -368,7 +368,7 @@ func (c *Client) notifySubscription(ctx context.Context, sub *Subscription, noti
 				sub.notifyForDataChange(ctx, &PublishNotificationDataForDataChange{
 					SubscriptionID: sub.SubscriptionID,
 					Value:          data.Value,
-					NodeId:         *data.TypeID.NodeID,
+					NodeId:         data.TypeID.NodeID,
 				})
 			}
 		case *ua.EventNotificationList,

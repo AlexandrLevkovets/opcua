@@ -303,8 +303,15 @@ func (c *Client) notifySubscription(ctx context.Context, sub *Subscription, noti
 		// Part 4, 7.20.2 DataChangeNotification parameter
 		// Part 4, 7.20.3 EventNotificationList parameter
 		// Part 4, 7.20.4 StatusChangeNotification parameter
-		case *ua.DataChangeNotification,
-			*ua.EventNotificationList,
+		case *ua.DataChangeNotification:
+			{
+				sub.notifyForDataChange(ctx, &PublishNotificationDataForDataChange{
+					SubscriptionID: sub.SubscriptionID,
+					Value:          data.Value,
+					NodeId:         *data.TypeID.NodeID,
+				})
+			}
+		case *ua.EventNotificationList,
 			*ua.StatusChangeNotification:
 			sub.notify(ctx, &PublishNotificationData{
 				SubscriptionID: sub.SubscriptionID,

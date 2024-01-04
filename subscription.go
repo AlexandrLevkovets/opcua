@@ -30,6 +30,7 @@ type Subscription struct {
 	RevisedLifetimeCount      uint32
 	RevisedMaxKeepAliveCount  uint32
 	Notifs                    chan<- *PublishNotificationData
+	NotifsForDataChange       chan<- *PublishNotificationDataForDataChange
 	params                    *SubscriptionParameters
 	items                     map[uint32]*monitoredItem
 	itemsMu                   sync.Mutex
@@ -78,6 +79,13 @@ func NewMonitoredItemCreateRequestWithDefaults(nodeID *ua.NodeID, attributeID ua
 			SamplingInterval: 0.0,
 		},
 	}
+}
+
+type PublishNotificationDataForDataChange struct {
+	SubscriptionID uint32
+	Error          error
+	NodeId         ua.NodeID
+	Value          interface{}
 }
 
 type PublishNotificationData struct {
@@ -269,6 +277,14 @@ func (s *Subscription) notify(ctx context.Context, data *PublishNotificationData
 	case <-ctx.Done():
 		return
 	case s.Notifs <- data:
+	}
+}
+
+func (s *Subscription) notifyForDataChange(ctx context.Context, data *PublishNotificationDataForDataChange) {
+	select {
+	case <-ctx.Done():
+		return
+	case s.NotifsForDataChange <- data:
 	}
 }
 

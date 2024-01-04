@@ -77,6 +77,66 @@ func (c *Client) Subscribe(ctx context.Context, params *SubscriptionParameters, 
 	return sub, nil
 }
 
+func (c *Client) SubscribeForDataChange(ctx context.Context, params *SubscriptionParameters, notifyCh chan<- *PublishNotificationDataForDataChange) (*Subscription, error) {
+	stats.Client().Add("Subscribe", 1)
+
+	if params == nil {
+		params = &SubscriptionParameters{}
+	}
+
+	params.setDefaults()
+	req := &ua.CreateSubscriptionRequest{
+		RequestedPublishingInterval: float64(params.Interval / time.Millisecond),
+		RequestedLifetimeCount:      params.LifetimeCount,
+		RequestedMaxKeepAliveCount:  params.MaxKeepAliveCount,
+		PublishingEnabled:           true,
+		MaxNotificationsPerPublish:  params.MaxNotificationsPerPublish,
+		Priority:                    params.Priority,
+	}
+
+	var res *ua.CreateSubscriptionResponse
+	err := c.Send(ctx, req, func(v interface{}) error {
+		return safeAssign(v, &res)
+	})
+	if err != nil {
+		return nil, err
+	}
+	if res.ResponseHeader.ServiceResult != ua.StatusOK {
+		return nil, res.ResponseHeader.ServiceResult
+	}
+
+	stats.Subscription().Add("Count", 1)
+
+	// start the publish loop if it isn't already running
+	c.resumech <- struct{}{}
+
+	sub := &Subscription{
+		SubscriptionID:            res.SubscriptionID,
+		RevisedPublishingInterval: time.Duration(res.RevisedPublishingInterval) * time.Millisecond,
+		RevisedLifetimeCount:      res.RevisedLifetimeCount,
+		RevisedMaxKeepAliveCount:  res.RevisedMaxKeepAliveCount,
+		NotifsForDataChange:       notifyCh,
+		items:                     make(map[uint32]*monitoredItem),
+		params:                    params,
+		nextSeq:                   1,
+		c:                         c,
+		Items:                     make(map[uint32]*MonitoredItem),
+	}
+
+	c.subMux.Lock()
+	defer c.subMux.Unlock()
+
+	if sub.SubscriptionID == 0 || c.subs[sub.SubscriptionID] != nil {
+		// this should not happen and is usually indicative of a server bug
+		// see: Part 4 Section 5.13.2.2, Table 88 – CreateSubscription Service Parameters
+		return nil, ua.StatusBadSubscriptionIDInvalid
+	}
+
+	c.subs[sub.SubscriptionID] = sub
+	c.updatePublishTimeout_NeedsSubMuxRLock()
+	return sub, nil
+}
+
 // SubscriptionIDs gets a list of subscriptionIDs
 func (c *Client) SubscriptionIDs() []uint32 {
 	c.subMux.RLock()

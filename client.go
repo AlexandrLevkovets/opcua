@@ -170,6 +170,8 @@ type Client struct {
 	// list of cached atomicNamespaces on the server
 	atomicNamespaces atomic.Value // []string
 
+	working bool
+
 	// monitorOnce ensures only one connection monitor is running
 	monitorOnce sync.Once
 }

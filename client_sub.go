@@ -48,7 +48,10 @@ func (c *Client) Subscribe(ctx context.Context, params *SubscriptionParameters, 
 	stats.Subscription().Add("Count", 1)
 
 	// start the publish loop if it isn't already running
-	c.resumech <- struct{}{}
+	if c.working == false {
+		c.resumech <- struct{}{}
+		c.working = true
+	}
 
 	sub := &Subscription{
 		SubscriptionID:            res.SubscriptionID,
@@ -327,6 +330,7 @@ func (c *Client) pauseSubscriptions(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 	case c.pausech <- struct{}{}:
+		c.working = false
 	}
 }
 
@@ -336,6 +340,7 @@ func (c *Client) resumeSubscriptions(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 	case c.resumech <- struct{}{}:
+		c.working = true
 	}
 }
 
